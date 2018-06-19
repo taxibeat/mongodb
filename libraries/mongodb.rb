@@ -35,7 +35,7 @@ class Chef::ResourceDefinitionList::MongoDB
   def self.cluster_up_to_date?(from_server, expected)
     cut_down = from_server.map do |s|
       other = expected.select { |e| s['_id'] == e['_id'] }.first
-      s.select { |k, _v| other.keys.include?(k) }
+      s.select { |k, _v| other.keys.include?(k) if other != nil }
     end
 
     cut_down == expected
@@ -103,7 +103,7 @@ class Chef::ResourceDefinitionList::MongoDB
       "Configuring replicaset with members #{members.map { |n| n['hostname'] }.join(', ')}"
     )
 
-    Chef::Log.debug(
+    Chef::Log.info(
       "Configuring replicaset with config: #{rs_members}"
     )
 
@@ -140,7 +140,7 @@ class Chef::ResourceDefinitionList::MongoDB
 
       # check if both configs are the same
       config = connection['local']['system']['replset'].find_one('_id' => name)
-      Chef::Log.debug "Current members are #{config['members']} and we expect #{rs_members}"
+      Chef::Log.info "Current members are #{config['members']} and we expect #{rs_members}"
       if config && cluster_up_to_date?(config['members'], rs_members)
         # config is up-to-date, do nothing
         Chef::Log.info("Replicaset '#{name}' already configured")

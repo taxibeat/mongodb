@@ -263,7 +263,7 @@ define :mongodb_instance,
       #   b) search(:aws_opsworks_intance) doesn't return FQDN by default, so we have to make up FQDN suffix: "#{node['environment']['name']}.#{node['environment']['datacenter']}" (if unset, ".localdomain" is used)
       my_layer_ids = search("aws_opsworks_instance", "self:true").first[:layer_ids]
       search("aws_opsworks_instance").each do |other_instance|
-        if ['requested', 'booting', 'running_setup', 'online'].include? other_instance[:status]
+        if ['online'].include? other_instance[:status]
           other_instance[:layer_ids].each do |other_layer_id|
             if my_layer_ids.include? other_layer_id
               other_layer = search("aws_opsworks_layer", "layer_id:#{other_layer_id}").first
