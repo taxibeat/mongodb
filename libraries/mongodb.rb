@@ -41,7 +41,7 @@ class Chef::ResourceDefinitionList::MongoDB
     cut_down == expected
   end
 
-  def self.create_replicaset_member(node)
+  def self.create_replicaset_member(node, member_num)
     return {} if node['fqdn'] =~ /\.vagrantup\.com$/
 
     port = node['mongodb']['config']['mongod']['net']['port']
@@ -61,10 +61,17 @@ class Chef::ResourceDefinitionList::MongoDB
                else
                  node['mongodb']['replica_priority']
                end
-    member['priority'] = priority unless priority == 1
     tags = node['mongodb']['replica_tags'].to_hash
     member['tags'] = tags unless tags.empty?
-    votes = node['mongodb']['replica_votes']
+    
+    # Voting members should not exceed the number of 7. Priority must be 0 when non-voting
+    if member_num > 6
+      votes = 0
+      member['priority'] = 0
+    else
+      votes = node['mongodb']['replica_votes']
+      member['priority'] = priority unless priority == 1
+    end
     member['votes'] = votes unless votes == 1
 
     member.freeze
@@ -97,7 +104,7 @@ class Chef::ResourceDefinitionList::MongoDB
     members << node unless members.any? { |m| m.name == node.name }
     members.sort! { |x, y| x.name <=> y.name }
 
-    rs_members = members.each_with_index.map { |member, n| create_replicaset_member(member).merge('_id' => n) }.select { |m| m.key? 'host' }
+    rs_members = members.each_with_index.map { |member, n| create_replicaset_member(member, n).merge('_id' => n) }.select { |m| m.key? 'host' }
 
     Chef::Log.info(
       "Configuring replicaset with members #{members.map { |n| n['hostname'] }.join(', ')}"
