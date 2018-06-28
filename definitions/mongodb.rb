@@ -278,7 +278,7 @@ define :mongodb_instance,
                   'ipaddress' => other_instance[:private_ip],
                   'mongodb' => node[:mongodb],
                   # Make the id unique for every instance
-                  'id' => other_instance[:private_ip].gsub(/\./mi, '')
+                  'id' => other_instance[:private_ip].gsub(/\./mi, '').to_i
                 }
                 a = OpenStruct.new n
                 rs_nodes << a
