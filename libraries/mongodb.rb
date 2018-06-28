@@ -104,7 +104,7 @@ class Chef::ResourceDefinitionList::MongoDB
     members << node unless members.any? { |m| m.name == node.name }
     members.sort! { |x, y| x.name <=> y.name }
 
-    rs_members = members.each_with_index.map { |member, n| create_replicaset_member(member, n).merge('_id' => n) }.select { |m| m.key? 'host' }
+    rs_members = members.each_with_index.map { |member, n| create_replicaset_member(member, n).merge('_id' => member['id']) }.select { |m| m.key? 'host' }
 
     Chef::Log.info(
       "Configuring replicaset with members #{members.map { |n| n['hostname'] }.join(', ')}"
