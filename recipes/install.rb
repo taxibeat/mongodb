@@ -59,43 +59,6 @@ template "#{dbconfig_file} install" do
   action :create_if_missing
 end
 
-# and we install our own init file
-if node['platform'] == 'ubuntu' && node['platform_version'].to_f < 15.04
-  init_file = File.join(node['mongodb']['init_dir'], "#{node['mongodb']['default_init_name']}.conf")
-  mode = '0644'
-else
-  init_file = File.join(node['mongodb']['init_dir'], node['mongodb']['default_init_name'])
-  mode = '0755'
-end
-
-# Reload systemctl for RHEL 7+ after modifying the init file.
-execute 'mongodb-systemctl-daemon-reload' do
-  command 'systemctl daemon-reload'
-  action :nothing
-end
-
-template "#{init_file} install" do
-  path init_file
-  cookbook node['mongodb']['template_cookbook']
-  source node['mongodb']['init_script_template']
-  group node['mongodb']['root_group']
-  owner 'root'
-  mode mode
-  variables(
-    provides: 'mongod',
-    dbconfig_file: dbconfig_file,
-    sysconfig_file: sysconfig_file,
-    ulimit: node['mongodb']['ulimit'],
-    bind_ip: config['net']['bindIp'],
-    port: config['net']['port']
-  )
-  action :create_if_missing
-
-  if (platform_family?('rhel') && node['platform'] != 'amazon' && node['platform_version'].to_i >= 7) || (node['platform'] == 'debian' && node['platform_version'].to_i >= 8)
-    notifies :run, 'execute[mongodb-systemctl-daemon-reload]', :immediately
-  end
-end
-
 # Adjust the version number for RHEL style if needed
 package_version = case node['platform_family']
                   when 'rhel'
@@ -149,3 +112,43 @@ if key_file_content
 end
 
 node.default['mongodb']['config'][config_type]['security']['keyFile'] = nil if key_file_content.nil?
+
+# and we install our own init file
+if node['platform'] == 'ubuntu' && node['platform_version'].to_f < 15.04
+  init_file = File.join(node['mongodb']['init_dir'], "#{node['mongodb']['default_init_name']}.conf")
+  mode = '0644'
+elsif node['platform'] == 'ubuntu' && node['platform_version'].to_f >= 15.04
+  init_file = File.join(node['mongodb']['init_dir'], "#{node['mongodb']['default_init_name']}.service")
+  mode = '0644'
+else
+  init_file = File.join(node['mongodb']['init_dir'], node['mongodb']['default_init_name'])
+  mode = '0755'
+end
+
+# Reload systemctl for RHEL 7+ after modifying the init file.
+execute 'mongodb-systemctl-daemon-reload' do
+  command 'systemctl daemon-reload'
+  action :nothing
+end
+
+template "#{init_file} install" do
+  path init_file
+  cookbook node['mongodb']['template_cookbook']
+  source node['mongodb']['init_script_template']
+  group node['mongodb']['root_group']
+  owner 'root'
+  mode mode
+  variables(
+    provides: 'mongod',
+    dbconfig_file: dbconfig_file,
+    sysconfig_file: sysconfig_file,
+    ulimit: node['mongodb']['ulimit'],
+    bind_ip: config['net']['bindIp'],
+    port: config['net']['port']
+  )
+  action :create
+
+  if (platform_family?('rhel') && node['platform'] != 'amazon' && node['platform_version'].to_i >= 7) || (node['platform'] == 'debian' && node['platform_version'].to_i >= 8)
+    notifies :run, 'execute[mongodb-systemctl-daemon-reload]', :immediately
+  end
+end
