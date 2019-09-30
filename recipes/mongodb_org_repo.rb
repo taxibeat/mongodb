@@ -46,7 +46,7 @@ when 'debian'
       distribution "#{node['lsb']['codename']}/mongodb-org/#{package_version_major}"
       components node['platform'] == 'ubuntu' ? ['multiverse'] : ['main'] 
       keyserver 'hkp://keyserver.ubuntu.com:80'
-      key '68818C72E52529D4'
+      key '9DA31620334BD75D9DCB49F368818C72E52529D4'
       action :add
     end
   else
