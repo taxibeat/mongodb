@@ -40,11 +40,22 @@ case node['platform_family']
 when 'debian'
   # Ubuntu: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
   # Debian: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-debian/
-  apt_repository 'mongodb' do
-    uri node['mongodb']['repo']
-    distribution "#{node['lsb']['codename']}/mongodb-org/#{package_version_major}"
-    components node['platform'] == 'ubuntu' ? ['multiverse'] : ['main']
-    key "https://www.mongodb.org/static/pgp/server-#{package_version_major}.asc"
+  if node['platform'] == 'ubuntu' && node['platform_version'].to_f == 18.04
+    apt_repository 'mongodb-org' do
+      uri node['mongodb']['repo']
+      distribution "#{node['lsb']['codename']}/mongodb-org/#{package_version_major}"
+      components node['platform'] == 'ubuntu' ? ['multiverse'] : ['main'] 
+      keyserver 'hkp://keyserver.ubuntu.com:80'
+      key '68818C72E52529D4'
+      action :add
+    end
+  else
+    apt_repository 'mongodb' do
+      uri node['mongodb']['repo']
+      distribution "#{node['lsb']['codename']}/mongodb-org/#{package_version_major}"
+      components node['platform'] == 'ubuntu' ? ['multiverse'] : ['main']
+      key "https://www.mongodb.org/static/pgp/server-#{package_version_major}.asc"
+    end
   end
 when 'amazon', 'fedora', 'rhel'
   # RHEL: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-red-hat/
