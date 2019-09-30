@@ -40,7 +40,7 @@ case node['platform_family']
 when 'debian'
   # Ubuntu: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
   # Debian: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-debian/
-  if node['platform'] == 'ubuntu' && node['platform_version'].to_f == 18.04
+  if node['platform'] == 'ubuntu' && node['platform_version'].to_f > 16.04
     Chef::Log.warn("Adding key")
     apt_repository 'mongodb-org' do
       uri node['mongodb']['repo']
@@ -51,6 +51,7 @@ when 'debian'
       action :add
     end
   else
+    Chef::Log.warn("Adding key on the else")
     apt_repository 'mongodb' do
       uri node['mongodb']['repo']
       distribution "#{node['lsb']['codename']}/mongodb-org/#{package_version_major}"
