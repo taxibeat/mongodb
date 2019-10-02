@@ -93,7 +93,7 @@ when 'rhel', 'fedora'
   default['mongodb']['init_script_template'] = 'redhat-mongodb.init.erb'
 when 'debian'
   if node['platform'] == 'ubuntu'
-    default['mongodb']['repo'] = 'http://repo.mongodb.org/apt/ubuntu'
+    default['mongodb']['repo'] = 'https://repo.mongodb.org/apt/ubuntu'
 
     # Upstart
     if node['platform_version'].to_f < 15.04
