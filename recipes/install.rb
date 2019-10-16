@@ -59,8 +59,6 @@ template "#{dbconfig_file} install" do
   action :create_if_missing
 end
 
-node.default['mongodb']['config'][config_type]['security']['keyFile'] = nil if key_file_content.nil?
-
 # and we install our own init file
 if node['platform'] == 'ubuntu' && node['platform_version'].to_f < 15.04
   init_file = File.join(node['mongodb']['init_dir'], "#{node['mongodb']['default_init_name']}.conf")
@@ -152,3 +150,5 @@ if key_file_content
     content key_file_content
   end
 end
+
+node.default['mongodb']['config'][config_type]['security']['keyFile'] = nil if key_file_content.nil?
